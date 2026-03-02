@@ -44,6 +44,7 @@ public final class WorldCommand extends BrigadierCommand {
                 .then(WorldSpawnCommand.create(plugin))
                 .then(WorldTeleportCommand.create(plugin))
                 .then(WorldUnloadCommand.create(plugin))
+                .then(WorldAliasCommand.create(plugin))
                 .build();
     }
 

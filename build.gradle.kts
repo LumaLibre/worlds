@@ -25,10 +25,12 @@ repositories {
     maven("https://repo.thenextlvl.net/releases")
     maven("https://repo.thenextlvl.net/snapshots")
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.extendedclip.com/releases")
 }
 
 dependencies {
     paperweight.foliaDevBundle("1.21.11-R0.1-SNAPSHOT")
+    compileOnly("me.clip:placeholderapi:2.12.2")
 
     implementation(project(":api"))
 
@@ -67,6 +69,12 @@ paper {
     website = "https://thenextlvl.net"
     authors = listOf("NonSwag")
     foliaSupported = true
+
+    serverDependencies {
+        register("PlaceholderAPI") {
+            joinClasspath = true
+        }
+    }
 
     permissions {
         register("worlds.commands.admin") {

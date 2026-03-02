@@ -8,6 +8,7 @@ import io.papermc.paper.ServerBuildInfo;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.key.Key;
 import net.thenextlvl.i18n.ComponentBundle;
+import net.thenextlvl.worlds.alias.WorldAliasPlaceholder;
 import net.thenextlvl.worlds.api.WorldsProvider;
 import net.thenextlvl.worlds.api.generator.LevelStem;
 import net.thenextlvl.worlds.api.level.Level;
@@ -40,6 +41,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -102,6 +104,12 @@ public final class WorldsPlugin extends JavaPlugin implements WorldsProvider {
         fastStats.ready();
         warnVoidGeneratorPlugin();
         registerListeners();
+
+        getServer().getGlobalRegionScheduler().runDelayed(this, (t) -> {
+            if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+                new WorldAliasPlaceholder().register();
+            }
+        }, 1);
     }
 
     private void checkPerWorldsRemnants() {
@@ -223,7 +231,7 @@ public final class WorldsPlugin extends JavaPlugin implements WorldsProvider {
             event.registrar().register(SaveOffCommand.create(this), "Disable automatic world saving");
             event.registrar().register(SaveOnCommand.create(this), "Enable automatic world saving");
             event.registrar().register(SeedCommand.create(this), "Query the seed of a world");
-            event.registrar().register(WorldCommand.create(this), "The main command to interact with this plugin");
+            event.registrar().register(WorldCommand.create(this), "The main command to interact with this plugin", List.of("worlds"));
             event.registrar().register(WorldSetSpawnCommand.create(this, "setworldspawn"), "Set the world spawn");
         }));
     }
