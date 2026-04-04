@@ -29,10 +29,12 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.biome.FixedBiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.PatrolSpawner;
 import net.minecraft.world.level.levelgen.PhantomSpawner;
 import net.minecraft.world.level.levelgen.WorldDimensions;
@@ -42,6 +44,7 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 import net.minecraft.world.level.validation.ContentValidationException;
 import net.thenextlvl.worlds.WorldsPlugin;
+import net.thenextlvl.worlds.api.generator.BiomeSource;
 import net.thenextlvl.worlds.api.generator.DimensionType;
 import net.thenextlvl.worlds.api.generator.Generator;
 import net.thenextlvl.worlds.api.generator.GeneratorType;
@@ -173,6 +176,10 @@ final class PaperLevel extends LevelData {
             }
             /// Worlds end
 
+            if (generatorType.equals(GeneratorType.SINGLE_BIOME) && biomeSource instanceof BiomeSource.FixedBiomeSource fixed) {
+                worldDimensions = replaceBiomeSource(dimensionType, context.datapackWorldgen(), worldDimensions.dimensions(), fixed.biome());
+            }
+
             final WorldDimensions.Complete complete = worldDimensions.bake(contextLevelStemRegistry);
             final Lifecycle lifecycle = complete.lifecycle().add(context.datapackWorldgen().allRegistriesLifecycle());
 
@@ -283,6 +290,23 @@ final class PaperLevel extends LevelData {
         builder.putAll(stemMap);
         builder.put(key, new LevelStem(dimensionType, chunkGenerator));
         return builder.buildKeepingLast();
+    }
+
+    private static WorldDimensions replaceBiomeSource(
+            final ResourceKey<LevelStem> key,
+            final HolderLookup.Provider registries,
+            final Map<ResourceKey<LevelStem>, LevelStem> dimensions,
+            final net.kyori.adventure.key.Key biomeKey
+    ) {
+        final var biomeRegistry = registries.lookupOrThrow(Registries.BIOME);
+        final var resourceKey = ResourceKey.create(Registries.BIOME,
+                Identifier.fromNamespaceAndPath(biomeKey.namespace(), biomeKey.value()));
+        final var biomeHolder = biomeRegistry.getOrThrow(resourceKey);
+        final var levelStem = dimensions.get(key);
+        if (levelStem == null) return new WorldDimensions(dimensions);
+        if (!(levelStem.generator() instanceof NoiseBasedChunkGenerator noiseGen)) return new WorldDimensions(dimensions);
+        final var newGenerator = new NoiseBasedChunkGenerator(new FixedBiomeSource(biomeHolder), noiseGen.generatorSettings());
+        return replaceGenerator(key, registries, dimensions, newGenerator);
     }
 
     public void persistWorld(final World world, final net.thenextlvl.worlds.api.generator.LevelStem dimension, final boolean enabled) {

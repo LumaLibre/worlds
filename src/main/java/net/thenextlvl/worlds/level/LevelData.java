@@ -8,6 +8,7 @@ import net.thenextlvl.nbt.tag.ListTag;
 import net.thenextlvl.nbt.tag.LongTag;
 import net.thenextlvl.nbt.tag.Tag;
 import net.thenextlvl.worlds.WorldsPlugin;
+import net.thenextlvl.worlds.api.generator.BiomeSource;
 import net.thenextlvl.worlds.api.generator.Generator;
 import net.thenextlvl.worlds.api.generator.GeneratorType;
 import net.thenextlvl.worlds.api.generator.LevelStem;
@@ -40,6 +41,7 @@ public abstract class LevelData implements Level {
     protected final LevelStem levelStem;
     protected final GeneratorType generatorType;
 
+    protected final @Nullable BiomeSource biomeSource;
     protected final @Nullable ChunkGenerator chunkGenerator;
     protected final @Nullable BiomeProvider biomeProvider;
 
@@ -62,6 +64,7 @@ public abstract class LevelData implements Level {
         this.levelStem = builder.levelStem != null ? builder.levelStem : getLevelStem(plugin, directory);
         this.generatorType = builder.generatorType != null ? builder.generatorType
                 : builder.preset != null ? GeneratorType.FLAT : GeneratorType.NORMAL;
+        this.biomeSource = builder.biomeSource;
         this.biomeProvider = builder.biomeProvider != null ? builder.biomeProvider
                 : builder.generator != null ? builder.generator.biomeProvider(name) : null;
         this.chunkGenerator = builder.chunkGenerator != null ? builder.chunkGenerator
@@ -105,6 +108,11 @@ public abstract class LevelData implements Level {
     @Override
     public Optional<Preset> getPreset() {
         return Optional.ofNullable(preset);
+    }
+
+    @Override
+    public Optional<BiomeSource> getBiomeSource() {
+        return Optional.ofNullable(biomeSource);
     }
 
     @Override
@@ -164,6 +172,7 @@ public abstract class LevelData implements Level {
                 .name(name)
                 .levelStem(levelStem)
                 .generatorType(generatorType)
+                .biomeSource(biomeSource)
                 .biomeProvider(biomeProvider)
                 .chunkGenerator(chunkGenerator)
                 .generator(generator)
@@ -179,6 +188,7 @@ public abstract class LevelData implements Level {
     public static class Builder implements Level.Builder {
         private final WorldsPlugin plugin;
 
+        private @Nullable BiomeSource biomeSource;
         private @Nullable Boolean bonusChest;
         private @Nullable Boolean hardcore;
         private @Nullable Boolean structures;
@@ -237,6 +247,17 @@ public abstract class LevelData implements Level {
         @Override
         public Level.Builder name(@Nullable final String name) {
             this.name = name;
+            return this;
+        }
+
+        @Override
+        public @Nullable BiomeSource biomeSource() {
+            return biomeSource;
+        }
+
+        @Override
+        public Level.Builder biomeSource(@Nullable final BiomeSource source) {
+            this.biomeSource = source;
             return this;
         }
 

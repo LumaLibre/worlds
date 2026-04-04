@@ -3,6 +3,7 @@ package net.thenextlvl.worlds.api.level;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 import net.kyori.adventure.util.TriState;
+import net.thenextlvl.worlds.api.generator.BiomeSource;
 import net.thenextlvl.worlds.api.generator.Generator;
 import net.thenextlvl.worlds.api.generator.GeneratorType;
 import net.thenextlvl.worlds.api.generator.LevelStem;
@@ -125,6 +126,10 @@ public interface Level extends Keyed {
     @Contract(pure = true)
     @ApiStatus.Experimental
     GeneratorType getGeneratorType();
+
+    @Contract(pure = true)
+    @ApiStatus.Experimental
+    Optional<BiomeSource> getBiomeSource();
 
     @Contract(pure = true)
     @ApiStatus.Experimental
@@ -452,6 +457,15 @@ public interface Level extends Keyed {
         @ApiStatus.Experimental
         @Contract(mutates = "this")
         Builder generatorType(@Nullable GeneratorType type);
+
+        @Nullable
+        @Contract(pure = true)
+        @ApiStatus.Experimental
+        BiomeSource biomeSource();
+
+        @ApiStatus.Experimental
+        @Contract(mutates = "this")
+        Builder biomeSource(@Nullable BiomeSource source);
 
         @Nullable
         @ApiStatus.Internal

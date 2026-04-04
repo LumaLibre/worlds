@@ -10,11 +10,13 @@ import io.papermc.paper.command.brigadier.Commands;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.thenextlvl.worlds.WorldsPlugin;
+import net.thenextlvl.worlds.api.generator.BiomeSource;
 import net.thenextlvl.worlds.api.generator.Generator;
 import net.thenextlvl.worlds.api.generator.GeneratorType;
 import net.thenextlvl.worlds.api.generator.LevelStem;
 import net.thenextlvl.worlds.api.level.Level;
 import net.thenextlvl.worlds.api.preset.Preset;
+import net.thenextlvl.worlds.command.argument.BiomeArgument;
 import net.thenextlvl.worlds.command.argument.GeneratorArgument;
 import net.thenextlvl.worlds.command.argument.GeneratorTypeArgument;
 import net.thenextlvl.worlds.command.argument.KeyArgument;
@@ -52,6 +54,7 @@ final class WorldCreateCommand extends OptionCommand {
                 new Option("preset", new WorldPresetArgument(plugin)),
                 new Option("type", new GeneratorTypeArgument(plugin))
         ), builder -> addOptions(builder, false, Set.of(
+                new Option("biome", new BiomeArgument()),
                 new Option("bonus-chest", BoolArgumentType.bool()),
                 new Option("hardcore", BoolArgumentType.bool()),
                 new Option("dimension", new LevelStemArgument(plugin)),
@@ -105,6 +108,7 @@ final class WorldCreateCommand extends OptionCommand {
                     .seed(tryGetArgument(context, "seed", Long.class).orElse(null))
                     .structures(tryGetArgument(context, "structures", Boolean.class).orElse(null))
                     .generatorType(tryGetArgument(context, "type", GeneratorType.class).orElse(null))
+                    .biomeSource(tryGetArgument(context, "biome", Key.class).map(BiomeSource::fixed).orElse(null))
                     .bonusChest(tryGetArgument(context, "bonus-chest", Boolean.class).orElse(null))
                     .hardcore(tryGetArgument(context, "hardcore", Boolean.class).orElse(null))
                     .name(name)
