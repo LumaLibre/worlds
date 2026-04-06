@@ -43,11 +43,13 @@ public final class BiomeArgument implements SimpleArgumentType<Key, String> {
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        Registry.BIOME.stream()
-                .map(biome -> biome.getKey().asString())
-                .filter(s -> s.toLowerCase(Locale.ROOT).contains(builder.getRemainingLowerCase()))
-                .map(StringArgumentType::escapeIfRequired)
-                .forEach(builder::suggest);
-        return builder.buildFuture();
+        return CompletableFuture.supplyAsync(() -> {
+            Registry.BIOME.stream()
+                    .map(biome -> biome.getKey().asString())
+                    .filter(s -> s.toLowerCase(Locale.ROOT).contains(builder.getRemainingLowerCase()))
+                    .map(StringArgumentType::escapeIfRequired)
+                    .forEach(builder::suggest);
+            return builder.build();
+        });
     }
 }

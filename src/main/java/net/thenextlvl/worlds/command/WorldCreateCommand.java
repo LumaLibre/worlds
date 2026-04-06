@@ -49,19 +49,28 @@ final class WorldCreateCommand extends OptionCommand {
     protected RequiredArgumentBuilder<CommandSourceStack, ?> createCommand() {
         final var name = Commands.argument("name", StringArgumentType.string());
 
-        addOptions(name, true, Set.of(
-                new Option("generator", new GeneratorArgument(plugin)),
-                new Option("preset", new WorldPresetArgument(plugin)),
-                new Option("type", new GeneratorTypeArgument(plugin))
-        ), builder -> addOptions(builder, false, Set.of(
-                new Option("biome", new BiomeArgument()),
+        final var innerOptions = Set.of(
                 new Option("bonus-chest", BoolArgumentType.bool()),
                 new Option("hardcore", BoolArgumentType.bool()),
                 new Option("dimension", new LevelStemArgument(plugin)),
                 new Option("key", new KeyArgument()),
                 new Option("seed", new SeedArgument()),
                 new Option("structures", BoolArgumentType.bool())
-        ), null));
+        );
+
+        addOptions(name, true, Set.of(
+                new Option("generator", new GeneratorArgument(plugin)),
+                new Option("preset", new WorldPresetArgument(plugin))
+        ), builder -> addOptions(builder, false, innerOptions, null));
+
+        final var typeArg = Commands.argument("type", new GeneratorTypeArgument(plugin)).executes(this);
+        addOptions(typeArg, false, innerOptions, null);
+
+        final var biomeArg = Commands.argument("biome", new BiomeArgument()).executes(this);
+        addOptions(biomeArg, false, innerOptions, null);
+        typeArg.then(Commands.literal("biome").then(biomeArg));
+
+        name.then(Commands.literal("type").then(typeArg));
 
         return name.executes(this);
     }
