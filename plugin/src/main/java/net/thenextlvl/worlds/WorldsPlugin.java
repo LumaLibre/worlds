@@ -128,7 +128,7 @@ public final class WorldsPlugin extends JavaPlugin implements PluginAccess, Worl
         // I'm lazy
         getServer().getGlobalRegionScheduler().runDelayed(this, (t) -> {
             if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-                new WorldAliasPlaceholder().register();
+                new net.thenextlvl.worlds.alias.WorldAliasPlaceholder().register();
             }
         }, 1);
     }
