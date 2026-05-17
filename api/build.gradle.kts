@@ -1,47 +1,18 @@
 plugins {
-    id("java")
-    id("java-library")
     id("maven-publish")
 }
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(21)
     withSourcesJar()
     withJavadocJar()
 }
 
-tasks.compileJava {
-    options.release.set(21)
-}
-
-group = rootProject.group
-version = rootProject.version
-
-repositories {
-    mavenCentral()
-    maven("https://repo.thenextlvl.net/releases")
-    maven("https://repo.thenextlvl.net/snapshots")
-    maven("https://repo.papermc.io/repository/maven-public/")
-}
-
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-    compileOnly("net.thenextlvl:per-worlds:1.5.1")
+    api("net.thenextlvl:static-binder:0.1.3")
+    compileOnly("io.papermc.paper:paper-api:26.1.2.build.+")
 
-    testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    testImplementation("io.papermc.paper:paper-api:26.1.2.build.+")
     testImplementation("net.thenextlvl:nbt:4.3.4")
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation(platform("org.junit:junit-bom:6.1.0-SNAPSHOT"))
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-tasks.test {
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-        showCauses = true
-        showExceptions = true
-    }
 }
 
 tasks.withType<Javadoc>().configureEach {
