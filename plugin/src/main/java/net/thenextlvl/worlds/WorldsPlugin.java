@@ -1,8 +1,8 @@
 package net.thenextlvl.worlds;
 
-import dev.faststats.bukkit.BukkitMetrics;
-import dev.faststats.core.ErrorTracker;
-import dev.faststats.core.data.Metric;
+import dev.faststats.ErrorTracker;
+import dev.faststats.bukkit.BukkitContext;
+import dev.faststats.data.Metric;
 import io.papermc.paper.ServerBuildInfo;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.key.Key;
@@ -27,7 +27,6 @@ import net.thenextlvl.worlds.model.MessageMigrator;
 import net.thenextlvl.worlds.version.PluginVersionChecker;
 import net.thenextlvl.worlds.versions.PluginAccess;
 import net.thenextlvl.worlds.versions.VersionHandler;
-import net.thenextlvl.worlds.versions.v26_1_2.SimpleVersionHandler;
 import net.thenextlvl.worlds.view.FoliaLevelView;
 import net.thenextlvl.worlds.view.PaperLevelView;
 import org.bstats.bukkit.Metrics;
@@ -45,6 +44,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -87,13 +87,14 @@ public final class WorldsPlugin extends JavaPlugin implements PluginAccess, Worl
             .build();
 
     private final PluginVersionChecker versionChecker = new PluginVersionChecker(this);
-    private final BukkitMetrics fastStats = BukkitMetrics.factory()
-            .token("978c4aa9ecf78ae2e9c0776601fd4c6c")
-            .errorTracker(ERROR_TRACKER)
-            .addMetric(addGeneratorChart())
-            .addMetric(addWorldsChart())
-            .addMetric(addEnvironmentsChart())
-            .create(this);
+    private final BukkitContext context = new BukkitContext.Factory(this, "978c4aa9ecf78ae2e9c0776601fd4c6c")
+            .errorTrackerService(ERROR_TRACKER)
+            .metrics(factory -> factory
+                    .addMetric(addGeneratorChart())
+                    .addMetric(addWorldsChart())
+                    .addMetric(addDimensionsChart())
+                    .create())
+            .create();
 
     private final Metrics metrics = new Metrics(this, 19652);
 
@@ -106,7 +107,9 @@ public final class WorldsPlugin extends JavaPlugin implements PluginAccess, Worl
     private VersionHandler selectImplementation() {
         final var s = ServerBuildInfo.buildInfo().minecraftVersionId();
         if (s.contains("26.1.2")) {
-            return new SimpleVersionHandler(this);
+            return new net.thenextlvl.worlds.versions.v26_1_2.SimpleVersionHandler(this);
+        } else if (s.equals("26.2")) {
+            return new net.thenextlvl.worlds.versions.v26_2.SimpleVersionHandler(this);
         }
         throw new IllegalStateException("No implementation found for version: " + s + ", check for an update.");
     }
@@ -119,7 +122,7 @@ public final class WorldsPlugin extends JavaPlugin implements PluginAccess, Worl
 
     @Override
     public void onEnable() {
-        fastStats.ready();
+        context.ready();
         worldRegistry.read();
         worldOperationScheduler.load();
         worldOperationScheduler.runScheduledOperations();
@@ -131,6 +134,12 @@ public final class WorldsPlugin extends JavaPlugin implements PluginAccess, Worl
                 new net.thenextlvl.worlds.alias.WorldAliasPlaceholder().register();
             }
         }, 1);
+    }
+
+    @Override
+    public void onDisable() {
+        context.shutdown();
+        metrics.shutdown();
     }
 
     public Path presetsFolder() {
@@ -216,15 +225,15 @@ public final class WorldsPlugin extends JavaPlugin implements PluginAccess, Worl
         return Metric.number("worlds", () -> getServer().getWorlds().size());
     }
 
-    private Metric<?> addEnvironmentsChart() {
-        return Metric.stringArray("environments", () -> getServer().getWorlds().stream()
-                .map(world -> switch (world.getEnvironment()) {
-                    case NORMAL -> "Overworld";
-                    case NETHER -> "Nether";
-                    case THE_END -> "End";
-                    case CUSTOM -> "Custom";
-                })
-                .toArray(String[]::new));
+    private Metric<?> addDimensionsChart() {
+        return Metric.numberMap("dimensions", () -> {
+            final var dimensions = new HashMap<String, Integer>();
+            for (final var world : getServer().getWorlds()) {
+                final var dimension = getDimension(world);
+                dimensions.compute(dimension.key().asString(), (key, value) -> value == null ? 1 : value + 1);
+            }
+            return dimensions;
+        });
     }
 
     public VersionHandler handler() {
