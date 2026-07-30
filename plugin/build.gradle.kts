@@ -2,7 +2,7 @@ import io.papermc.hangarpublishplugin.model.Platforms
 import net.minecrell.pluginyml.bukkit.BukkitPluginDescription
 
 plugins {
-    id("com.gradleup.shadow") version "9.6.0"
+    id("com.gradleup.shadow") version "9.6.1"
     id("com.modrinth.minotaur") version "2.+"
     id("de.eldoria.plugin-yml.paper") version "0.9.0"
     id("io.papermc.hangar-publish-plugin") version "0.1.4"
@@ -22,7 +22,7 @@ dependencies {
     implementation("net.thenextlvl:i18n:1.2.0")
     implementation("net.thenextlvl:nbt:4.3.6")
 
-    implementation("dev.faststats.metrics:bukkit:0.28.0")
+    implementation("dev.faststats.metrics:bukkit:0.29.3")
     implementation("org.bstats:bstats-bukkit:3.2.1")
 }
 
